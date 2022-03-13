@@ -40,7 +40,7 @@ def request(current_word):
 
 
 def index(url_to_index):
-    connection = sqlite3.connect("indexer.db")
+    connection = sqlite3.connect("indexer.sql")
     crsr = connection.cursor()
     print("Connected to the db.")
 
@@ -58,33 +58,30 @@ def index(url_to_index):
 
             abstract_data = soup.find("meta", property="og:description")
 
-            print(url_to_index)
+            #print(url_to_index)
                 
-            print("Abstract: " + abstract_data.get('content'))
+            #print("Abstract: " + abstract_data.get('content'))
 
             authors_data = ""
             for author in soup.find_all("dc.creator"):
                 authors_data = authors_data + ", " + author.get('content')
                 
-            print(authors_data)
+            #print(authors_data)
 
+            if crsr.execute("SELECT 1 FROM domains WHERE website_url='" + url_to_index + "'").fetchone():
+                print("Found! Already Exists")
+            else:
+                sql_command = "INSERT INTO domains (website_url, abstract, url_title)\n VALUES ('" + url_to_index +  "', '" + abstract_data.get('content') + "', '" + soup.title.text + "')"
 
-            sql_command = "INSERT INTO domains (website_url, abstract, url_title)\n VALUES ('" + url_to_index +  "', '" + abstract_data.get('content') + "', '" + soup.title.text + "')"
+                crsr.execute(sql_command)
+                connection.commit()
 
-            crsr.execute(sql_command)
-            connection.commit()
-
-            exit()
+            #exit()
 
 
         else:
             print(r.status_code)
 
-        
-
-        sql_command = """SELECT * from domains"""
-        crsr.execute(sql_command)
-        connection.commit()
 
 
 
@@ -96,7 +93,7 @@ def test(word):
     request(word)
 
 
-test("Finasteride")
+test("Finasteride meta analisys")
 
 
 # title
